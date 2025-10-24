@@ -362,6 +362,51 @@
             background: #6c757d;
             margin-top: 10px;
         }
+        
+        .warning-message {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .warning-message.show {
+            display: block;
+        }
+        
+        .warning-message strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .warning-message p {
+            color: #856404;
+            margin: 0;
+            font-size: 0.95em;
+        }
+        
+        .info-message {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .info-message strong {
+            color: #0c5460;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .info-message p {
+            color: #0c5460;
+            margin: 0;
+            font-size: 0.95em;
+        }
     </style>
 </head>
 <body>
@@ -428,6 +473,12 @@
                         <span class="question-number">3</span>
                         E-scooter Technical Specifications
                     </div>
+                    
+                    <div class="warning-message" id="warning-q3">
+                        <strong>⚠️ Jurisdiction-Specific Requirements</strong>
+                        <p id="warning-q3-text"></p>
+                    </div>
+                    
                     <div class="input-group">
                         <label for="maxPower">Maximum Power (Watts):</label>
                         <input type="number" id="maxPower" min="0" max="500" required>
@@ -446,8 +497,19 @@
                 <div class="question-section">
                     <div class="question-title">
                         <span class="question-number">4</span>
-                        Equipment (for Queensland)
+                        Equipment Requirements
                     </div>
+                    
+                    <div class="warning-message" id="warning-q4">
+                        <strong>⚠️ Queensland Only</strong>
+                        <p>These equipment requirements only apply to Queensland. Other jurisdictions have different or no specific equipment requirements.</p>
+                    </div>
+                    
+                    <div class="info-message" id="info-q4" style="display:none;">
+                        <strong>ℹ️ Not Applicable</strong>
+                        <p id="info-q4-text"></p>
+                    </div>
+                    
                     <div class="checkbox-group">
                         <input type="checkbox" id="hasBrake">
                         <label for="hasBrake">Functioning brake</label>
@@ -476,13 +538,19 @@
                         <span class="question-number">5</span>
                         Operator Information
                     </div>
+                    
+                    <div class="warning-message" id="warning-q5">
+                        <strong>⚠️ Age Requirements Vary by Jurisdiction</strong>
+                        <p id="warning-q5-text"></p>
+                    </div>
+                    
                     <div class="input-group">
                         <label for="operatorAge">Operator Age:</label>
                         <input type="number" id="operatorAge" min="0" max="100" required>
                     </div>
-                    <div class="checkbox-group">
+                    <div class="checkbox-group" id="supervision-group">
                         <input type="checkbox" id="hasSupervision">
-                        <label for="hasSupervision">Under adult supervision (if age 12-15)</label>
+                        <label for="hasSupervision">Under adult supervision (if age 12-15 in Queensland)</label>
                     </div>
                 </div>
                 
@@ -492,6 +560,12 @@
                         <span class="question-number">6</span>
                         Where will you operate the e-scooter?
                     </div>
+                    
+                    <div class="warning-message" id="warning-q6">
+                        <strong>⚠️ Speed Limits Vary by Jurisdiction and Location</strong>
+                        <p id="warning-q6-text"></p>
+                    </div>
+                    
                     <div class="input-group">
                         <label for="operationLocation">Location Type:</label>
                         <select id="operationLocation" required>
@@ -609,7 +683,98 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             showQuestion(1);
+            
+            // Add jurisdiction change listener
+            document.getElementById('jurisdiction').addEventListener('change', updateWarnings);
         });
+        
+        function updateWarnings() {
+            const jurisdiction = document.getElementById('jurisdiction').value;
+            
+            if (!jurisdiction) return;
+            
+            // Question 3: Technical Specifications
+            const warning3 = document.getElementById('warning-q3');
+            const warning3Text = document.getElementById('warning-q3-text');
+            
+            if (jurisdiction === 'QLD') {
+                warning3.classList.add('show');
+                warning3Text.textContent = 'Queensland requires: Max 250W power, max 25 km/h speed, and specific equipment (next question).';
+            } else if (jurisdiction === 'WA') {
+                warning3.classList.add('show');
+                warning3Text.textContent = 'Western Australia requires: Max 200W power, max 25 km/h speed, max 25kg weight, and specific dimensions.';
+            } else if (jurisdiction === 'ACT') {
+                warning3.classList.add('show');
+                warning3Text.textContent = 'ACT requires: Max 60kg weight, max 25 km/h speed, and specific dimensions (≤1,250mm × 700mm × 1,350mm).';
+            } else if (jurisdiction === 'TAS') {
+                warning3.classList.add('show');
+                warning3Text.textContent = 'Tasmania requires: Max 25 km/h speed.';
+            } else {
+                warning3.classList.remove('show');
+            }
+            
+            // Question 4: Equipment
+            const warning4 = document.getElementById('warning-q4');
+            const info4 = document.getElementById('info-q4');
+            const info4Text = document.getElementById('info-q4-text');
+            
+            if (jurisdiction === 'QLD') {
+                warning4.style.display = 'block';
+                info4.style.display = 'none';
+            } else {
+                warning4.style.display = 'none';
+                info4.style.display = 'block';
+                info4Text.textContent = `These equipment requirements do not apply to ${getJurisdictionName(jurisdiction)}. This section will be skipped in evaluation.`;
+            }
+            
+            // Question 5: Age Requirements
+            const warning5 = document.getElementById('warning-q5');
+            const warning5Text = document.getElementById('warning-q5-text');
+            const supervisionGroup = document.getElementById('supervision-group');
+            
+            warning5.classList.add('show');
+            
+            if (jurisdiction === 'QLD') {
+                warning5Text.textContent = 'Queensland: Age 16+ (unsupervised) or Age 12-15 (with adult supervision required).';
+                supervisionGroup.style.display = 'flex';
+            } else if (['WA', 'ACT', 'TAS'].includes(jurisdiction)) {
+                warning5Text.textContent = `${getJurisdictionName(jurisdiction)}: Minimum age 16 years.`;
+                supervisionGroup.style.display = 'none';
+            } else if (['NSW', 'VIC', 'SA', 'NT'].includes(jurisdiction)) {
+                warning5Text.textContent = `${getJurisdictionName(jurisdiction)}: Trial locations only - Age 16+ (18+ for NT).`;
+                supervisionGroup.style.display = 'none';
+            }
+            
+            // Question 6: Location Speed Limits
+            const warning6 = document.getElementById('warning-q6');
+            const warning6Text = document.getElementById('warning-q6-text');
+            
+            warning6.classList.add('show');
+            
+            if (jurisdiction === 'QLD') {
+                warning6Text.textContent = 'Queensland: Footpath 12 km/h, Shared/Bicycle paths 25 km/h, Roads 25 km/h (limited conditions).';
+            } else if (jurisdiction === 'WA') {
+                warning6Text.textContent = 'Western Australia: Footpath 10 km/h, Shared/Bicycle paths 25 km/h.';
+            } else if (jurisdiction === 'ACT') {
+                warning6Text.textContent = 'ACT: Footpath 15 km/h, Shared/Bicycle paths 25 km/h.';
+            } else if (jurisdiction === 'TAS') {
+                warning6Text.textContent = 'Tasmania: Roads 20 km/h (in 50 km/h zones), other paths allowed.';
+            }
+        }
+        
+        function getJurisdictionName(code) {
+            const names = {
+                'QLD': 'Queensland',
+                'WA': 'Western Australia',
+                'TAS': 'Tasmania',
+                'ACT': 'Australian Capital Territory',
+                'NSW': 'New South Wales',
+                'VIC': 'Victoria',
+                'SA': 'South Australia',
+                'NT': 'Northern Territory'
+            };
+            return names[code] || code;
+        }
         
         // Rule-based system engine
         const ruleTrace = [];
@@ -652,14 +817,18 @@
             addTrace(`Checking Paragraph 1(b): Technical specifications for ${jurisdiction}`);
             const violations = [];
             
+            // Check if power exceeds maximum allowed anywhere
+            if (maxPower > 250) {
+                addTrace(`✗ Power ${maxPower}W exceeds 250W limit`, false);
+                violations.push(`Power exceeds 250W limit (current: ${maxPower}W). Device classified as motor vehicle and cannot be registered.`);
+                return violations; // Critical violation - stop checking
+            }
+            
             if (jurisdiction === 'QLD') {
                 addTrace(`Checking Subsection 2(1): Queensland specifications`);
                 
                 // Power check
-                if (maxPower > 250) {
-                    addTrace(`✗ Power ${maxPower}W exceeds 250W limit`, false);
-                    violations.push(`Power exceeds 250W limit (current: ${maxPower}W). Device classified as motor vehicle.`);
-                } else if (maxPower <= 200) {
+                if (maxPower <= 200) {
                     addTrace(`✓ Power ${maxPower}W ≤ 200W (power-assisted)`, true);
                 } else if (maxPower <= 250) {
                     addTrace(`✓ Power ${maxPower}W ≤ 250W (pedelec)`, true);
@@ -668,13 +837,13 @@
                 // Speed check
                 if (maxSpeed > 25) {
                     addTrace(`✗ Max speed ${maxSpeed} km/h exceeds 25 km/h`, false);
-                    violations.push(`Maximum speed exceeds 25 km/h (current: ${maxSpeed} km/h)`);
+                    violations.push(`Maximum speed exceeds 25 km/h limit (current: ${maxSpeed} km/h)`);
                 } else {
                     addTrace(`✓ Max speed ${maxSpeed} km/h ≤ 25 km/h`, true);
                 }
                 
-                // Equipment check
-                const requiredEquipment = ['brake', 'bell', 'frontLight', 'rearLight', 'reflector'];
+                // Equipment check (ONLY for Queensland)
+                addTrace(`Checking Paragraph 2(1)(c): Equipment requirements (Queensland only)`);
                 const missingEquipment = [];
                 
                 if (!equipment.hasBrake) missingEquipment.push('functioning brake');
@@ -685,13 +854,12 @@
                 
                 if (missingEquipment.length > 0) {
                     addTrace(`✗ Missing equipment: ${missingEquipment.join(', ')}`, false);
-                    violations.push(`Missing required equipment: ${missingEquipment.join(', ')}`);
+                    violations.push(`Missing required equipment (Queensland): ${missingEquipment.join(', ')}`);
                 } else {
                     addTrace(`✓ All required equipment present`, true);
                 }
             }
-            
-            if (jurisdiction === 'WA') {
+            else if (jurisdiction === 'WA') {
                 addTrace(`Checking Subsection 2(2): Western Australia specifications`);
                 
                 if (weight >= 25) {
@@ -714,9 +882,10 @@
                 } else {
                     addTrace(`✓ Power ${maxPower}W < 200W`, true);
                 }
+                
+                addTrace(`Note: Equipment requirements not specified for WA`, null);
             }
-            
-            if (jurisdiction === 'ACT') {
+            else if (jurisdiction === 'ACT') {
                 addTrace(`Checking Subsection 2(3): ACT specifications`);
                 
                 if (weight > 60) {
@@ -732,14 +901,27 @@
                 } else {
                     addTrace(`✓ Max speed ${maxSpeed} km/h ≤ 25 km/h`, true);
                 }
+                
+                addTrace(`Note: Equipment requirements not specified for ACT`, null);
             }
-            
-            if (jurisdiction === 'TAS') {
+            else if (jurisdiction === 'TAS') {
                 addTrace(`Checking Subsection 2(4): Tasmania specifications`);
                 
                 if (maxSpeed > 25) {
                     addTrace(`✗ Max speed ${maxSpeed} km/h exceeds 25 km/h`, false);
                     violations.push(`Maximum speed exceeds 25 km/h (current: ${maxSpeed} km/h)`);
+                } else {
+                    addTrace(`✓ Max speed ${maxSpeed} km/h ≤ 25 km/h`, true);
+                }
+                
+                addTrace(`Note: Equipment requirements not specified for TAS`, null);
+            }
+            else {
+                // Trial jurisdictions - basic checks
+                addTrace(`Note: ${jurisdiction} is trial-only jurisdiction`, null);
+                if (maxSpeed > 25) {
+                    addTrace(`✗ Max speed ${maxSpeed} km/h exceeds typical 25 km/h limit`, false);
+                    violations.push(`Maximum speed likely exceeds trial scheme limits (current: ${maxSpeed} km/h)`);
                 } else {
                     addTrace(`✓ Max speed ${maxSpeed} km/h ≤ 25 km/h`, true);
                 }
@@ -761,7 +943,7 @@
                 if (locationType === 'footpath') {
                     if (currentSpeed > 12) {
                         addTrace(`✗ Speed ${currentSpeed} km/h exceeds 12 km/h limit on footpath`, false);
-                        violations.push(`Speed on footpath exceeds 12 km/h (current: ${currentSpeed} km/h)`);
+                        violations.push(`Speed on footpath exceeds 12 km/h limit (current: ${currentSpeed} km/h)`);
                     } else {
                         addTrace(`✓ Speed ${currentSpeed} km/h ≤ 12 km/h on footpath`, true);
                     }
@@ -772,16 +954,23 @@
                     } else {
                         addTrace(`✓ Speed ${currentSpeed} km/h ≤ 25 km/h`, true);
                     }
+                } else if (locationType === 'road') {
+                    if (currentSpeed > 25) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h exceeds 25 km/h limit on road`, false);
+                        violations.push(`Speed on road exceeds 25 km/h limit (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 25 km/h on road`, true);
+                    }
+                    addTrace(`Note: Road use only permitted on roads with no centre line, ≤50 km/h limit, and <50m distance`, null);
                 }
             }
-            
-            if (jurisdiction === 'WA') {
+            else if (jurisdiction === 'WA') {
                 addTrace(`Checking Subsection 3(2): Western Australia permitted locations`);
                 
                 if (locationType === 'footpath') {
                     if (currentSpeed > 10) {
                         addTrace(`✗ Speed ${currentSpeed} km/h exceeds 10 km/h limit on footpath`, false);
-                        violations.push(`Speed on footpath exceeds 10 km/h (current: ${currentSpeed} km/h)`);
+                        violations.push(`Speed on footpath exceeds 10 km/h limit (current: ${currentSpeed} km/h)`);
                     } else {
                         addTrace(`✓ Speed ${currentSpeed} km/h ≤ 10 km/h on footpath`, true);
                     }
@@ -792,16 +981,17 @@
                     } else {
                         addTrace(`✓ Speed ${currentSpeed} km/h ≤ 25 km/h`, true);
                     }
+                } else if (locationType === 'road') {
+                    addTrace(`Note: Road use only on roads with no centre line and ≤50 km/h limit`, null);
                 }
             }
-            
-            if (jurisdiction === 'ACT') {
+            else if (jurisdiction === 'ACT') {
                 addTrace(`Checking Subsection 3(3): ACT permitted locations`);
                 
                 if (locationType === 'footpath') {
                     if (currentSpeed > 15) {
                         addTrace(`✗ Speed ${currentSpeed} km/h exceeds 15 km/h limit on footpath`, false);
-                        violations.push(`Speed on footpath exceeds 15 km/h (current: ${currentSpeed} km/h)`);
+                        violations.push(`Speed on footpath exceeds 15 km/h limit (current: ${currentSpeed} km/h)`);
                     } else {
                         addTrace(`✓ Speed ${currentSpeed} km/h ≤ 15 km/h on footpath`, true);
                     }
@@ -812,18 +1002,41 @@
                     } else {
                         addTrace(`✓ Speed ${currentSpeed} km/h ≤ 25 km/h`, true);
                     }
+                } else if (locationType === 'road') {
+                    addTrace(`Note: Road use only if no footpath/shared path available or impractical (<50m)`, null);
                 }
             }
-            
-            if (jurisdiction === 'TAS') {
+            else if (jurisdiction === 'TAS') {
                 addTrace(`Checking Subsection 3(4): Tasmania permitted locations`);
                 
                 if (locationType === 'road') {
                     if (currentSpeed > 20) {
                         addTrace(`✗ Speed ${currentSpeed} km/h exceeds 20 km/h limit on road`, false);
-                        violations.push(`Speed on road exceeds 20 km/h (current: ${currentSpeed} km/h)`);
+                        violations.push(`Speed on road exceeds 20 km/h limit (current: ${currentSpeed} km/h)`);
                     } else {
                         addTrace(`✓ Speed ${currentSpeed} km/h ≤ 20 km/h on road`, true);
+                    }
+                    addTrace(`Note: Road use only in ≤50 km/h speed limit areas`, null);
+                } else {
+                    addTrace(`✓ ${locationType} is permitted in Tasmania`, true);
+                }
+            }
+            else {
+                // Trial jurisdictions
+                addTrace(`Note: ${jurisdiction} trial locations have specific rules`, null);
+                if (locationType === 'shared_path') {
+                    if (currentSpeed > 10) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h likely exceeds trial 10 km/h limit on shared paths`, false);
+                        violations.push(`Speed on shared path likely exceeds trial limit of 10 km/h (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 10 km/h on shared path`, true);
+                    }
+                } else if (locationType === 'road' || locationType === 'bicycle_path') {
+                    if (currentSpeed > 20) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h likely exceeds trial 20 km/h limit`, false);
+                        violations.push(`Speed likely exceeds trial limit of 20 km/h (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 20 km/h`, true);
                     }
                 }
             }
@@ -848,23 +1061,44 @@
                         return { valid: true };
                     } else {
                         addTrace(`✗ Age ${age} in range [12-16) without adult supervision`, false);
-                        return { valid: false, reason: 'Operators aged 12-15 must have adult supervision' };
+                        return { valid: false, reason: 'Queensland: Operators aged 12-15 must have adult supervision' };
                     }
                 } else {
                     addTrace(`✗ Age ${age} < 12`, false);
-                    return { valid: false, reason: 'Minimum age is 12 years' };
+                    return { valid: false, reason: 'Queensland: Minimum age is 12 years' };
                 }
             }
-            
-            if (['WA', 'ACT', 'TAS'].includes(jurisdiction)) {
-                addTrace(`Checking age requirement: minimum 16 years`);
+            else if (['WA', 'ACT', 'TAS'].includes(jurisdiction)) {
+                addTrace(`Checking age requirement: minimum 16 years for ${jurisdiction}`);
                 
                 if (age >= 16) {
                     addTrace(`✓ Age ${age} ≥ 16`, true);
                     return { valid: true };
                 } else {
                     addTrace(`✗ Age ${age} < 16`, false);
-                    return { valid: false, reason: 'Minimum age is 16 years' };
+                    return { valid: false, reason: `${getJurisdictionName(jurisdiction)}: Minimum age is 16 years` };
+                }
+            }
+            else if (jurisdiction === 'NT') {
+                addTrace(`Checking age requirement for Northern Territory trial locations`);
+                
+                if (age >= 18) {
+                    addTrace(`✓ Age ${age} ≥ 18 (NT trial requirement)`, true);
+                    return { valid: true };
+                } else {
+                    addTrace(`✗ Age ${age} < 18`, false);
+                    return { valid: false, reason: 'Northern Territory: Trial locations require minimum age 18 years' };
+                }
+            }
+            else if (['NSW', 'VIC', 'SA'].includes(jurisdiction)) {
+                addTrace(`Checking age requirement for ${jurisdiction} trial locations`);
+                
+                if (age >= 16) {
+                    addTrace(`✓ Age ${age} ≥ 16 (trial requirement)`, true);
+                    return { valid: true };
+                } else {
+                    addTrace(`✗ Age ${age} < 16`, false);
+                    return { valid: false, reason: `${getJurisdictionName(jurisdiction)}: Trial locations require minimum age 16 years` };
                 }
             }
             
@@ -877,29 +1111,43 @@
             const violations = [];
             
             // Helmet check
-            if (!wearsHelmet && !religiousExemption) {
-                addTrace(`✗ Not wearing helmet and no religious exemption`, false);
-                violations.push('Helmet not worn (mandatory in all jurisdictions)');
-            } else if (wearsHelmet) {
+            addTrace(`Checking Paragraph 5(a): Helmet requirement`);
+            if (!wearsHelmet) {
+                if (religiousExemption && jurisdiction === 'ACT') {
+                    addTrace(`✓ Religious headdress exemption granted (ACT only)`, true);
+                } else if (religiousExemption && jurisdiction !== 'ACT') {
+                    addTrace(`✗ Religious exemption claimed but not in ACT`, false);
+                    violations.push('Religious headdress exemption only available in ACT. Helmet mandatory in ' + getJurisdictionName(jurisdiction));
+                } else {
+                    addTrace(`✗ Not wearing helmet and no religious exemption`, false);
+                    violations.push('Helmet not worn (mandatory in all jurisdictions)');
+                }
+            } else {
                 addTrace(`✓ Wearing helmet`, true);
-            } else if (religiousExemption && jurisdiction === 'ACT') {
-                addTrace(`✓ Religious headdress exemption (ACT only)`, true);
             }
             
             // BAC check
+            addTrace(`Checking Paragraph 5(b): BAC requirement`);
             if (bac >= 0.05) {
                 addTrace(`✗ BAC ${bac} ≥ 0.05`, false);
-                violations.push(`BAC exceeds 0.05 limit (current: ${bac})`);
+                violations.push(`BAC exceeds 0.05 limit (current: ${bac}). This is a serious offence with enhanced penalties.`);
             } else {
                 addTrace(`✓ BAC ${bac} < 0.05`, true);
             }
             
             // Mobile phone check
+            addTrace(`Checking Paragraph 5(c): Mobile phone use`);
             if (usingPhone) {
                 addTrace(`✗ Using hand-held mobile phone`, false);
-                violations.push('Using hand-held mobile phone while operating (illegal)');
+                violations.push('Using hand-held mobile phone while operating (illegal in all jurisdictions - up to $1,000 fine in Queensland)');
             } else {
                 addTrace(`✓ Not using hand-held mobile phone`, true);
+            }
+            
+            // WA specific requirements
+            if (jurisdiction === 'WA') {
+                addTrace(`Checking Paragraph 5(d): Western Australia specific requirements`);
+                addTrace(`Note: WA requires visible clothing and lights at night/low visibility`, null);
             }
             
             return violations;
@@ -907,18 +1155,64 @@
         
         // Calculate penalties
         function calculatePenalty(jurisdiction, violations) {
+            const hasAlcoholViolation = violations.some(v => v.includes('BAC'));
+            const hasPhoneViolation = violations.some(v => v.includes('mobile phone'));
+            
             const penalties = {
-                'NT': '$25',
-                'QLD': '$52 - $1,044 (drug/alcohol: up to $5,338 or 9 months imprisonment)',
-                'WA': 'Approximately $100',
-                'ACT': '$146',
-                'TAS': '$260 - $650',
-                'NSW': 'Substantial fines',
-                'VIC': 'Mobile phone: $476+, Other: Substantial fines',
-                'SA': 'Significant fines'
+                'NT': {
+                    standard: '$25 (flat rate - most lenient in Australia)',
+                    notes: 'Northern Territory has the lowest penalties'
+                },
+                'QLD': {
+                    standard: '$52 - $1,044 for general violations',
+                    alcohol: 'Up to $5,338 (40 penalty units) or 9 months imprisonment',
+                    phone: '$1,000 for hand-held mobile phone use',
+                    notes: 'Queensland has strict penalties, especially for drug/alcohol offences'
+                },
+                'WA': {
+                    standard: 'Approximately $100 for standard offences',
+                    notes: 'Moderate penalties in Western Australia'
+                },
+                'ACT': {
+                    standard: '$146 flat rate for most cycling offences',
+                    notes: 'Fixed penalty for most violations'
+                },
+                'TAS': {
+                    standard: '$260 - $650 (among highest penalties nationwide)',
+                    notes: 'Tasmania has some of the highest fines'
+                },
+                'NSW': {
+                    standard: 'Substantial fines for non-compliance in trial areas',
+                    notes: 'Private e-scooters illegal; only rental in trial locations'
+                },
+                'VIC': {
+                    standard: 'Substantial fines for non-compliance',
+                    phone: '$476+ for mobile phone use',
+                    notes: 'Private e-scooters illegal; only rental in trial locations'
+                },
+                'SA': {
+                    standard: 'Significant fines apply',
+                    notes: 'Private e-scooters classified as motor vehicles - illegal'
+                }
             };
             
-            return penalties[jurisdiction] || 'Penalties vary';
+            const jurisdictionPenalty = penalties[jurisdiction] || { standard: 'Penalties vary', notes: '' };
+            
+            let penaltyText = '';
+            
+            if (hasAlcoholViolation && jurisdictionPenalty.alcohol) {
+                penaltyText = jurisdictionPenalty.alcohol;
+            } else if (hasPhoneViolation && jurisdictionPenalty.phone) {
+                penaltyText = jurisdictionPenalty.phone;
+            } else {
+                penaltyText = jurisdictionPenalty.standard;
+            }
+            
+            if (jurisdictionPenalty.notes) {
+                penaltyText += '\n\n' + jurisdictionPenalty.notes;
+            }
+            
+            return penaltyText;
         }
         
         // Main evaluation function
@@ -1068,7 +1362,7 @@
                 
                 resultDetails.innerHTML = `
                     <div class="result-item">
-                        <strong>Your e-scooter meets all requirements for ${formData.jurisdiction}</strong>
+                        <strong>Your e-scooter meets all requirements for ${getJurisdictionName(formData.jurisdiction)}</strong>
                         You may legally operate this e-scooter in the specified conditions.
                     </div>
                 `;
@@ -1090,9 +1384,11 @@
                 if (results.penalties.length > 0) {
                     violationsHTML += `
                         <div class="penalty-box">
-                            <h3>⚠️ Potential Penalties in ${formData.jurisdiction}</h3>
-                            <p><strong>${results.penalties[0].amount}</strong></p>
-                            <p>Additional consequences may include:</p>
+                            <h3>⚠️ Potential Penalties in ${getJurisdictionName(formData.jurisdiction)}</h3>
+                            <p><strong>${results.penalties[0].amount.split('\n\n')[0]}</strong></p>
+                            ${results.penalties[0].amount.includes('\n\n') ? 
+                                `<p style="margin-top:10px; font-style:italic;">${results.penalties[0].amount.split('\n\n')[1]}</p>` : ''}
+                            <p style="margin-top:15px;"><strong>Additional consequences may include:</strong></p>
                             <ul>
                                 <li>Device confiscation</li>
                                 <li>Requirement to register and microchip (in some jurisdictions)</li>
