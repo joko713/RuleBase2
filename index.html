@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-scooter Rule-Based Eligibility System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .progress-container {
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .question-section {
+            display: none;
+        }
+        
+        .question-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .question-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .question-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .radio-option {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+        
+        .radio-option label {
+            display: block;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .radio-option input[type="radio"]:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn-prev, .btn-next {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-prev {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-prev:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-prev:disabled, .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .results.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+        
+        .results.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+        
+        .results.warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        .results h2 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .results.success h2 {
+            color: #28a745;
+        }
+        
+        .results.error h2 {
+            color: #dc3545;
+        }
+        
+        .results.warning h2 {
+            color: #856404;
+        }
+        
+        .result-icon {
+            font-size: 1.5em;
+        }
+        
+        .result-details {
+            margin-top: 15px;
+        }
+        
+        .result-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .result-item.violation {
+            border-left-color: #dc3545;
+        }
+        
+        .result-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .penalty-box {
+            background: #fff0f0;
+            border: 2px solid #dc3545;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .penalty-box h3 {
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        
+        .rule-trace {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .rule-trace h3 {
+            margin-bottom: 10px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .rule-step {
+            padding: 5px 0;
+            padding-left: 20px;
+            border-left: 2px solid #667eea;
+            margin: 5px 0;
+        }
+        
+        .rule-step.satisfied {
+            color: #28a745;
+        }
+        
+        .rule-step.failed {
+            color: #dc3545;
+        }
+        
+        .reset-btn {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛴 E-scooter Eligibility Checker</h1>
+            <p>Australian Rule-Based Compliance System</p>
+        </div>
+        
+        <div class="content">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 14.3%;"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="currentQuestion">1</span> of <span id="totalQuestions">7</span>
+                </div>
+            </div>
+            
+            <form id="escooterForm">
+                <!-- Question 1: Jurisdiction -->
+                <div class="question-section">
+                    <div class="question-title">
+                        <span class="question-number">1</span>
+                        Where are you operating the e-scooter?
+                    </div>
+                    <div class="input-group">
+                        <label for="jurisdiction">Select Jurisdiction:</label>
+                        <select id="jurisdiction" required>
+                            <option value="">-- Select --</option>
+                            <option value="QLD">Queensland</option>
+                            <option value="WA">Western Australia</option>
+                            <option value="TAS">Tasmania</option>
+                            <option value="ACT">Australian Capital Territory</option>
+                            <option value="NSW">New South Wales</option>
+                            <option value="VIC">Victoria</option>
+                            <option value="SA">South Australia</option>
+                            <option value="NT">Northern Territory</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Question 2: E-scooter Type -->
+                <div class="question-section">
+                    <div class="question-title">
+                        <span class="question-number">2</span>
+                        What type of e-scooter is this?
+                    </div>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="typePrivate" name="escooterType" value="private" required>
+                            <label for="typePrivate">Private E-scooter</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="typeRental" name="escooterType" value="rental">
+                            <label for="typeRental">Rental E-scooter</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Question 3: Technical Specifications -->
+                <div class="question-section">
+                    <div class="question-title">
+                        <span class="question-number">3</span>
+                        E-scooter Technical Specifications
+                    </div>
+                    <div class="input-group">
+                        <label for="maxPower">Maximum Power (Watts):</label>
+                        <input type="number" id="maxPower" min="0" max="500" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="maxSpeed">Maximum Speed (km/h):</label>
+                        <input type="number" id="maxSpeed" min="0" max="50" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="weight">Weight (kg):</label>
+                        <input type="number" id="weight" min="0" max="100" step="0.1" required>
+                    </div>
+                </div>
+                
+                <!-- Question 4: Equipment -->
+                <div class="question-section">
+                    <div class="question-title">
+                        <span class="question-number">4</span>
+                        Equipment (for Queensland)
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hasBrake">
+                        <label for="hasBrake">Functioning brake</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hasBell">
+                        <label for="hasBell">Bell or horn</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hasFrontLight">
+                        <label for="hasFrontLight">White front light (visible 200m)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hasRearLight">
+                        <label for="hasRearLight">Red rear light</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hasReflector">
+                        <label for="hasReflector">Rear reflector</label>
+                    </div>
+                </div>
+                
+                <!-- Question 5: Operator Age -->
+                <div class="question-section">
+                    <div class="question-title">
+                        <span class="question-number">5</span>
+                        Operator Information
+                    </div>
+                    <div class="input-group">
+                        <label for="operatorAge">Operator Age:</label>
+                        <input type="number" id="operatorAge" min="0" max="100" required>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="hasSupervision">
+                        <label for="hasSupervision">Under adult supervision (if age 12-15)</label>
+                    </div>
+                </div>
+                
+                <!-- Question 6: Location of Operation -->
+                <div class="question-section">
+                    <div class="question-title">
+                        <span class="question-number">6</span>
+                        Where will you operate the e-scooter?
+                    </div>
+                    <div class="input-group">
+                        <label for="operationLocation">Location Type:</label>
+                        <select id="operationLocation" required>
+                            <option value="">-- Select --</option>
+                            <option value="footpath">Footpath</option>
+                            <option value="shared_path">Shared Path</option>
+                            <option value="bicycle_path">Bicycle Path/Lane</option>
+                            <option value="road">Road</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="currentSpeed">Current/Planned Speed (km/h):</label>
+                        <input type="number" id="currentSpeed" min="0" max="50" required>
+                    </div>
+                </div>
+                
+                <!-- Question 7: Safety Requirements -->
+                <div class="question-section">
+                    <div class="question-title">
+                        <span class="question-number">7</span>
+                        Safety Compliance
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="wearsHelmet">
+                        <label for="wearsHelmet">Wearing helmet</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="religiousExemption">
+                        <label for="religiousExemption">Has religious headdress exemption (ACT only)</label>
+                    </div>
+                    <div class="input-group">
+                        <label for="bac">Blood Alcohol Concentration (BAC):</label>
+                        <input type="number" id="bac" min="0" max="0.5" step="0.01" required>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="usingPhone">
+                        <label for="usingPhone">Using hand-held mobile phone</label>
+                    </div>
+                </div>
+                
+                <div class="navigation-buttons">
+                    <button type="button" class="btn-prev" id="prevBtn" onclick="previousQuestion()">← Previous</button>
+                    <button type="button" class="btn-next" id="nextBtn" onclick="nextQuestion()">Next →</button>
+                    <button type="submit" class="btn-next" id="submitBtn" style="display:none;">Check Compliance</button>
+                </div>
+            </form>
+            
+            <div id="results" class="results">
+                <h2><span class="result-icon"></span><span id="resultTitle"></span></h2>
+                <div id="resultDetails" class="result-details"></div>
+                <div id="ruleTrace" class="rule-trace" style="display:none;">
+                    <h3>Rule Evaluation Trace:</h3>
+                    <div id="traceContent"></div>
+                </div>
+                <button class="btn reset-btn" onclick="resetForm()">Check Another E-scooter</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wizard navigation
+        let currentStep = 1;
+        const totalSteps = 7;
+        
+        function showQuestion(step) {
+            // Hide all questions
+            document.querySelectorAll('.question-section').forEach(q => {
+                q.classList.remove('active');
+            });
+            
+            // Show current question
+            const questions = document.querySelectorAll('.question-section');
+            if (questions[step - 1]) {
+                questions[step - 1].classList.add('active');
+            }
+            
+            // Update progress bar
+            const progress = (step / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('currentQuestion').textContent = step;
+            
+            // Update buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            prevBtn.disabled = step === 1;
+            
+            if (step === totalSteps) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function nextQuestion() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showQuestion(currentStep);
+            }
+        }
+        
+        function previousQuestion() {
+            if (currentStep > 1) {
+                currentStep--;
+                showQuestion(currentStep);
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            showQuestion(1);
+        });
+        
+        // Rule-based system engine
+        const ruleTrace = [];
+        
+        function addTrace(message, satisfied = null) {
+            ruleTrace.push({ message, satisfied });
+        }
+        
+        function clearTrace() {
+            ruleTrace.length = 0;
+        }
+        
+        // Section 1: Check if jurisdiction allows private e-scooters
+        function checkJurisdictionLegal(jurisdiction, isRental) {
+            addTrace(`Checking Paragraph 1(a): E-scooter operated in legal jurisdiction`);
+            
+            const legalJurisdictions = ['QLD', 'WA', 'TAS', 'ACT'];
+            const trialJurisdictions = ['NSW', 'VIC', 'SA', 'NT'];
+            
+            if (legalJurisdictions.includes(jurisdiction)) {
+                addTrace(`✓ Jurisdiction ${jurisdiction} allows private e-scooters`, true);
+                return { legal: true, reason: 'Private e-scooters legal' };
+            }
+            
+            if (trialJurisdictions.includes(jurisdiction) && isRental) {
+                addTrace(`✓ Jurisdiction ${jurisdiction} allows rental e-scooters in trial locations`, true);
+                return { legal: true, reason: 'Rental in trial location', isTrial: true };
+            }
+            
+            addTrace(`✗ Jurisdiction ${jurisdiction} does not allow private e-scooters`, false);
+            return { 
+                legal: false, 
+                reason: `Private e-scooters banned in ${jurisdiction}. Only rental e-scooters in trial locations allowed.`,
+                error: true
+            };
+        }
+        
+        // Section 2: Check technical specifications
+        function checkTechnicalSpecs(jurisdiction, maxPower, maxSpeed, weight, equipment) {
+            addTrace(`Checking Paragraph 1(b): Technical specifications for ${jurisdiction}`);
+            const violations = [];
+            
+            if (jurisdiction === 'QLD') {
+                addTrace(`Checking Subsection 2(1): Queensland specifications`);
+                
+                // Power check
+                if (maxPower > 250) {
+                    addTrace(`✗ Power ${maxPower}W exceeds 250W limit`, false);
+                    violations.push(`Power exceeds 250W limit (current: ${maxPower}W). Device classified as motor vehicle.`);
+                } else if (maxPower <= 200) {
+                    addTrace(`✓ Power ${maxPower}W ≤ 200W (power-assisted)`, true);
+                } else if (maxPower <= 250) {
+                    addTrace(`✓ Power ${maxPower}W ≤ 250W (pedelec)`, true);
+                }
+                
+                // Speed check
+                if (maxSpeed > 25) {
+                    addTrace(`✗ Max speed ${maxSpeed} km/h exceeds 25 km/h`, false);
+                    violations.push(`Maximum speed exceeds 25 km/h (current: ${maxSpeed} km/h)`);
+                } else {
+                    addTrace(`✓ Max speed ${maxSpeed} km/h ≤ 25 km/h`, true);
+                }
+                
+                // Equipment check
+                const requiredEquipment = ['brake', 'bell', 'frontLight', 'rearLight', 'reflector'];
+                const missingEquipment = [];
+                
+                if (!equipment.hasBrake) missingEquipment.push('functioning brake');
+                if (!equipment.hasBell) missingEquipment.push('bell or horn');
+                if (!equipment.hasFrontLight) missingEquipment.push('white front light');
+                if (!equipment.hasRearLight) missingEquipment.push('red rear light');
+                if (!equipment.hasReflector) missingEquipment.push('rear reflector');
+                
+                if (missingEquipment.length > 0) {
+                    addTrace(`✗ Missing equipment: ${missingEquipment.join(', ')}`, false);
+                    violations.push(`Missing required equipment: ${missingEquipment.join(', ')}`);
+                } else {
+                    addTrace(`✓ All required equipment present`, true);
+                }
+            }
+            
+            if (jurisdiction === 'WA') {
+                addTrace(`Checking Subsection 2(2): Western Australia specifications`);
+                
+                if (weight >= 25) {
+                    addTrace(`✗ Weight ${weight}kg ≥ 25kg`, false);
+                    violations.push(`Weight exceeds 25kg limit (current: ${weight}kg)`);
+                } else {
+                    addTrace(`✓ Weight ${weight}kg < 25kg`, true);
+                }
+                
+                if (maxSpeed > 25) {
+                    addTrace(`✗ Max speed ${maxSpeed} km/h exceeds 25 km/h`, false);
+                    violations.push(`Maximum speed exceeds 25 km/h (current: ${maxSpeed} km/h)`);
+                } else {
+                    addTrace(`✓ Max speed ${maxSpeed} km/h ≤ 25 km/h`, true);
+                }
+                
+                if (maxPower >= 200) {
+                    addTrace(`✗ Power ${maxPower}W ≥ 200W`, false);
+                    violations.push(`Power exceeds 200W limit (current: ${maxPower}W)`);
+                } else {
+                    addTrace(`✓ Power ${maxPower}W < 200W`, true);
+                }
+            }
+            
+            if (jurisdiction === 'ACT') {
+                addTrace(`Checking Subsection 2(3): ACT specifications`);
+                
+                if (weight > 60) {
+                    addTrace(`✗ Weight ${weight}kg > 60kg`, false);
+                    violations.push(`Weight exceeds 60kg limit (current: ${weight}kg)`);
+                } else {
+                    addTrace(`✓ Weight ${weight}kg ≤ 60kg`, true);
+                }
+                
+                if (maxSpeed > 25) {
+                    addTrace(`✗ Max speed ${maxSpeed} km/h exceeds 25 km/h`, false);
+                    violations.push(`Maximum speed exceeds 25 km/h (current: ${maxSpeed} km/h)`);
+                } else {
+                    addTrace(`✓ Max speed ${maxSpeed} km/h ≤ 25 km/h`, true);
+                }
+            }
+            
+            if (jurisdiction === 'TAS') {
+                addTrace(`Checking Subsection 2(4): Tasmania specifications`);
+                
+                if (maxSpeed > 25) {
+                    addTrace(`✗ Max speed ${maxSpeed} km/h exceeds 25 km/h`, false);
+                    violations.push(`Maximum speed exceeds 25 km/h (current: ${maxSpeed} km/h)`);
+                } else {
+                    addTrace(`✓ Max speed ${maxSpeed} km/h ≤ 25 km/h`, true);
+                }
+            }
+            
+            return violations;
+        }
+        
+        // Section 3: Check permitted location and speed
+        function checkLocation(jurisdiction, locationType, currentSpeed) {
+            addTrace(`Checking Paragraph 1(c): Operating in permitted location`);
+            addTrace(`Location: ${locationType}, Speed: ${currentSpeed} km/h`);
+            
+            const violations = [];
+            
+            if (jurisdiction === 'QLD') {
+                addTrace(`Checking Subsection 3(1): Queensland permitted locations`);
+                
+                if (locationType === 'footpath') {
+                    if (currentSpeed > 12) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h exceeds 12 km/h limit on footpath`, false);
+                        violations.push(`Speed on footpath exceeds 12 km/h (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 12 km/h on footpath`, true);
+                    }
+                } else if (locationType === 'shared_path' || locationType === 'bicycle_path') {
+                    if (currentSpeed > 25) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h exceeds 25 km/h limit`, false);
+                        violations.push(`Speed exceeds 25 km/h limit (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 25 km/h`, true);
+                    }
+                }
+            }
+            
+            if (jurisdiction === 'WA') {
+                addTrace(`Checking Subsection 3(2): Western Australia permitted locations`);
+                
+                if (locationType === 'footpath') {
+                    if (currentSpeed > 10) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h exceeds 10 km/h limit on footpath`, false);
+                        violations.push(`Speed on footpath exceeds 10 km/h (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 10 km/h on footpath`, true);
+                    }
+                } else if (locationType === 'shared_path' || locationType === 'bicycle_path') {
+                    if (currentSpeed > 25) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h exceeds 25 km/h limit`, false);
+                        violations.push(`Speed exceeds 25 km/h limit (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 25 km/h`, true);
+                    }
+                }
+            }
+            
+            if (jurisdiction === 'ACT') {
+                addTrace(`Checking Subsection 3(3): ACT permitted locations`);
+                
+                if (locationType === 'footpath') {
+                    if (currentSpeed > 15) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h exceeds 15 km/h limit on footpath`, false);
+                        violations.push(`Speed on footpath exceeds 15 km/h (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 15 km/h on footpath`, true);
+                    }
+                } else if (locationType === 'shared_path' || locationType === 'bicycle_path') {
+                    if (currentSpeed > 25) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h exceeds 25 km/h limit`, false);
+                        violations.push(`Speed exceeds 25 km/h limit (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 25 km/h`, true);
+                    }
+                }
+            }
+            
+            if (jurisdiction === 'TAS') {
+                addTrace(`Checking Subsection 3(4): Tasmania permitted locations`);
+                
+                if (locationType === 'road') {
+                    if (currentSpeed > 20) {
+                        addTrace(`✗ Speed ${currentSpeed} km/h exceeds 20 km/h limit on road`, false);
+                        violations.push(`Speed on road exceeds 20 km/h (current: ${currentSpeed} km/h)`);
+                    } else {
+                        addTrace(`✓ Speed ${currentSpeed} km/h ≤ 20 km/h on road`, true);
+                    }
+                }
+            }
+            
+            return violations;
+        }
+        
+        // Section 4: Check age requirements
+        function checkAgeRequirements(jurisdiction, age, hasSupervision) {
+            addTrace(`Checking Paragraph 1(d): Age requirements for ${jurisdiction}`);
+            addTrace(`Operator age: ${age} years`);
+            
+            if (jurisdiction === 'QLD') {
+                addTrace(`Checking Subsection 4(1): Queensland age requirements`);
+                
+                if (age >= 16) {
+                    addTrace(`✓ Age ${age} ≥ 16`, true);
+                    return { valid: true };
+                } else if (age >= 12 && age < 16) {
+                    if (hasSupervision) {
+                        addTrace(`✓ Age ${age} in range [12-16) with adult supervision`, true);
+                        return { valid: true };
+                    } else {
+                        addTrace(`✗ Age ${age} in range [12-16) without adult supervision`, false);
+                        return { valid: false, reason: 'Operators aged 12-15 must have adult supervision' };
+                    }
+                } else {
+                    addTrace(`✗ Age ${age} < 12`, false);
+                    return { valid: false, reason: 'Minimum age is 12 years' };
+                }
+            }
+            
+            if (['WA', 'ACT', 'TAS'].includes(jurisdiction)) {
+                addTrace(`Checking age requirement: minimum 16 years`);
+                
+                if (age >= 16) {
+                    addTrace(`✓ Age ${age} ≥ 16`, true);
+                    return { valid: true };
+                } else {
+                    addTrace(`✗ Age ${age} < 16`, false);
+                    return { valid: false, reason: 'Minimum age is 16 years' };
+                }
+            }
+            
+            return { valid: true };
+        }
+        
+        // Section 5: Check safety requirements
+        function checkSafetyRequirements(jurisdiction, wearsHelmet, religiousExemption, bac, usingPhone) {
+            addTrace(`Checking Paragraph 1(e): Safety requirements`);
+            const violations = [];
+            
+            // Helmet check
+            if (!wearsHelmet && !religiousExemption) {
+                addTrace(`✗ Not wearing helmet and no religious exemption`, false);
+                violations.push('Helmet not worn (mandatory in all jurisdictions)');
+            } else if (wearsHelmet) {
+                addTrace(`✓ Wearing helmet`, true);
+            } else if (religiousExemption && jurisdiction === 'ACT') {
+                addTrace(`✓ Religious headdress exemption (ACT only)`, true);
+            }
+            
+            // BAC check
+            if (bac >= 0.05) {
+                addTrace(`✗ BAC ${bac} ≥ 0.05`, false);
+                violations.push(`BAC exceeds 0.05 limit (current: ${bac})`);
+            } else {
+                addTrace(`✓ BAC ${bac} < 0.05`, true);
+            }
+            
+            // Mobile phone check
+            if (usingPhone) {
+                addTrace(`✗ Using hand-held mobile phone`, false);
+                violations.push('Using hand-held mobile phone while operating (illegal)');
+            } else {
+                addTrace(`✓ Not using hand-held mobile phone`, true);
+            }
+            
+            return violations;
+        }
+        
+        // Calculate penalties
+        function calculatePenalty(jurisdiction, violations) {
+            const penalties = {
+                'NT': '$25',
+                'QLD': '$52 - $1,044 (drug/alcohol: up to $5,338 or 9 months imprisonment)',
+                'WA': 'Approximately $100',
+                'ACT': '$146',
+                'TAS': '$260 - $650',
+                'NSW': 'Substantial fines',
+                'VIC': 'Mobile phone: $476+, Other: Substantial fines',
+                'SA': 'Significant fines'
+            };
+            
+            return penalties[jurisdiction] || 'Penalties vary';
+        }
+        
+        // Main evaluation function
+        function evaluateRules(formData) {
+            clearTrace();
+            addTrace('=== Starting Rule Evaluation ===');
+            addTrace(`Section 1: Checking if e-scooter is legally operable`);
+            
+            const results = {
+                compliant: true,
+                violations: [],
+                warnings: [],
+                penalties: []
+            };
+            
+            // 1. Check jurisdiction
+            const jurisdictionCheck = checkJurisdictionLegal(
+                formData.jurisdiction, 
+                formData.escooterType === 'rental'
+            );
+            
+            if (!jurisdictionCheck.legal) {
+                results.compliant = false;
+                results.violations.push(jurisdictionCheck.reason);
+                results.penalties.push({
+                    type: 'Illegal Operation',
+                    amount: 'Device confiscation + fines'
+                });
+                return results;
+            }
+            
+            // 2. Check technical specifications
+            const techViolations = checkTechnicalSpecs(
+                formData.jurisdiction,
+                formData.maxPower,
+                formData.maxSpeed,
+                formData.weight,
+                formData.equipment
+            );
+            
+            results.violations.push(...techViolations);
+            if (techViolations.length > 0) {
+                results.compliant = false;
+            }
+            
+            // 3. Check location
+            const locationViolations = checkLocation(
+                formData.jurisdiction,
+                formData.operationLocation,
+                formData.currentSpeed
+            );
+            
+            results.violations.push(...locationViolations);
+            if (locationViolations.length > 0) {
+                results.compliant = false;
+            }
+            
+            // 4. Check age
+            const ageCheck = checkAgeRequirements(
+                formData.jurisdiction,
+                formData.operatorAge,
+                formData.hasSupervision
+            );
+            
+            if (!ageCheck.valid) {
+                results.compliant = false;
+                results.violations.push(ageCheck.reason);
+            }
+            
+            // 5. Check safety
+            const safetyViolations = checkSafetyRequirements(
+                formData.jurisdiction,
+                formData.wearsHelmet,
+                formData.religiousExemption,
+                formData.bac,
+                formData.usingPhone
+            );
+            
+            results.violations.push(...safetyViolations);
+            if (safetyViolations.length > 0) {
+                results.compliant = false;
+            }
+            
+            // Calculate penalties if not compliant
+            if (!results.compliant) {
+                const penalty = calculatePenalty(formData.jurisdiction, results.violations);
+                results.penalties.push({
+                    jurisdiction: formData.jurisdiction,
+                    amount: penalty
+                });
+            }
+            
+            addTrace('=== Rule Evaluation Complete ===');
+            addTrace(`Result: ${results.compliant ? 'COMPLIANT' : 'NOT COMPLIANT'}`);
+            
+            return results;
+        }
+        
+        // Form submission handler
+        document.getElementById('escooterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                jurisdiction: document.getElementById('jurisdiction').value,
+                escooterType: document.querySelector('input[name="escooterType"]:checked').value,
+                maxPower: parseInt(document.getElementById('maxPower').value),
+                maxSpeed: parseInt(document.getElementById('maxSpeed').value),
+                weight: parseFloat(document.getElementById('weight').value),
+                equipment: {
+                    hasBrake: document.getElementById('hasBrake').checked,
+                    hasBell: document.getElementById('hasBell').checked,
+                    hasFrontLight: document.getElementById('hasFrontLight').checked,
+                    hasRearLight: document.getElementById('hasRearLight').checked,
+                    hasReflector: document.getElementById('hasReflector').checked
+                },
+                operatorAge: parseInt(document.getElementById('operatorAge').value),
+                hasSupervision: document.getElementById('hasSupervision').checked,
+                operationLocation: document.getElementById('operationLocation').value,
+                currentSpeed: parseInt(document.getElementById('currentSpeed').value),
+                wearsHelmet: document.getElementById('wearsHelmet').checked,
+                religiousExemption: document.getElementById('religiousExemption').checked,
+                bac: parseFloat(document.getElementById('bac').value),
+                usingPhone: document.getElementById('usingPhone').checked
+            };
+            
+            const results = evaluateRules(formData);
+            displayResults(results, formData);
+        });
+        
+        function displayResults(results, formData) {
+            const resultsDiv = document.getElementById('results');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDetails = document.getElementById('resultDetails');
+            const ruleTraceDiv = document.getElementById('ruleTrace');
+            const traceContent = document.getElementById('traceContent');
+            
+            // Hide the form
+            document.getElementById('escooterForm').style.display = 'none';
+            document.querySelector('.progress-container').style.display = 'none';
+            
+            resultsDiv.classList.remove('success', 'error', 'warning');
+            
+            if (results.compliant) {
+                resultsDiv.classList.add('success');
+                document.querySelector('.result-icon').textContent = '✅';
+                resultTitle.textContent = 'Compliant - Legal to Operate!';
+                
+                resultDetails.innerHTML = `
+                    <div class="result-item">
+                        <strong>Your e-scooter meets all requirements for ${formData.jurisdiction}</strong>
+                        You may legally operate this e-scooter in the specified conditions.
+                    </div>
+                `;
+            } else {
+                resultsDiv.classList.add('error');
+                document.querySelector('.result-icon').textContent = '❌';
+                resultTitle.textContent = 'Not Compliant - Violations Detected';
+                
+                let violationsHTML = '<h3>Violations Found:</h3>';
+                results.violations.forEach((violation, index) => {
+                    violationsHTML += `
+                        <div class="result-item violation">
+                            <strong>Violation ${index + 1}:</strong>
+                            ${violation}
+                        </div>
+                    `;
+                });
+                
+                if (results.penalties.length > 0) {
+                    violationsHTML += `
+                        <div class="penalty-box">
+                            <h3>⚠️ Potential Penalties in ${formData.jurisdiction}</h3>
+                            <p><strong>${results.penalties[0].amount}</strong></p>
+                            <p>Additional consequences may include:</p>
+                            <ul>
+                                <li>Device confiscation</li>
+                                <li>Requirement to register and microchip (in some jurisdictions)</li>
+                                <li>Civil liability for accidents</li>
+                                <li>Destruction of device (if exceeds power/speed limits)</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                resultDetails.innerHTML = violationsHTML;
+            }
+            
+            // Display rule trace
+            let traceHTML = '';
+            ruleTrace.forEach(trace => {
+                const className = trace.satisfied === null ? '' : 
+                                 trace.satisfied ? 'satisfied' : 'failed';
+                traceHTML += `<div class="rule-step ${className}">${trace.message}</div>`;
+            });
+            traceContent.innerHTML = traceHTML;
+            ruleTraceDiv.style.display = 'block';
+            
+            resultsDiv.classList.add('show');
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function resetForm() {
+            document.getElementById('escooterForm').reset();
+            document.getElementById('escooterForm').style.display = 'block';
+            document.querySelector('.progress-container').style.display = 'block';
+            document.getElementById('results').classList.remove('show');
+            currentStep = 1;
+            showQuestion(1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
